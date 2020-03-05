@@ -5,6 +5,7 @@ import requests
 import json
 from dotenv import load_dotenv
 
+import csv
 
 dotenv_path = '../.env'
 load_dotenv(dotenv_path)
@@ -66,31 +67,32 @@ def convert(r_parse,r_type):
     response = 'んんん？'
     if judge_directive(r_type):
         for word in r_parse["result"]:
-            verv = ''
             for token in word["tokens"]:
-                if token['pos'] == '動詞語幹':
-                    verv = token['form']
-                    v_type = token['features']
-        if verv != '':
-            response = verv + 'な~~い!'
+                nai = make_gokan_dic(token['features'])
+                if token['pos'] == '動詞語幹' and nai != False:
+                        response = token['form'] + nai + 'たくな〜〜い！'
 
     return response
 
-
-
-    
-
-
+def make_gokan_dic(gokan):
+    if len(gokan) == 0:
+        return False
+    gokan_dic = {}
+    with open('../data/gokan.csv') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            gokan_dic[row[0]] = row[1]
+    for k,v in gokan_dic.items():
+        if gokan[0] == k:
+            return v
+        else:
+            return False
 
 
 
 
 if __name__ == '__main__':
     text = 'ごはん食べなさい。'
-    access_token = auth()
-    r_parse, r_type = parse(text, access_token)
-    print(convert(r_parse, r_type))
-    text = input()
     access_token = auth()
     r_parse, r_type = parse(text, access_token)
     print(convert(r_parse, r_type))
